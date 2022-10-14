@@ -1,13 +1,11 @@
 from typing import Literal
-from cv2 import AKAZE, AKAZE_DESCRIPTOR_KAZE, BRISK
 import numpy as np
 import cv2
 import sys
 import matplotlib.pyplot as plt
-import imutils
 
-FILE1 = "imagens/lago1.jpg"
-FILE2 = "imagens/lago2.jpg"
+FILE1 = "imagens/6.jpg"
+FILE2 = "imagens/7.jpg"
 
 SIFT_DESCRIPTOR = "SIFT_DESCRIPTOR"
 ORB_DESCRIPTOR = "ORB_DESCRIPTOR"
@@ -16,11 +14,13 @@ BRISK_DESCRIPTOR = "BRISK_DESCRIPTOR"
 KAZE_DESCRIPTOR = "KAZE_DESCRIPTOR" 
 AKAZE_DESCRIPTOR = "AKAZE_DESCRIPTOR" 
 
+matches = []
 
 
 def fusion(image1, keypoints1, des1, image2, keypoints2, des2, ratio = 0.75, proj = 4.0):
 
   smatches = []
+
 
   for m in matches:
     if len(m) == 2 and m[0].distance < m[1].distance * ratio:
@@ -45,7 +45,6 @@ def fusion(image1, keypoints1, des1, image2, keypoints2, des2, ratio = 0.75, pro
   
 
 def detect_and_compute(img: cv2.Mat, descriptor_name: Literal):
-  #gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
   if descriptor_name == SIFT_DESCRIPTOR:
     descriptor = cv2.SIFT_create()
   elif descriptor_name == ORB_DESCRIPTOR:
@@ -68,36 +67,43 @@ def detect_and_compute(img: cv2.Mat, descriptor_name: Literal):
 
 
 def match(descriptor_name: Literal, crosscheck, des1, des2):
-  #bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=crosscheck)
-  #matches = bf.match(des1,des2)
-  #return sorted(matches, key = lambda x:x.distance)
   knn = cv2.DescriptorMatcher_create("BruteForce")
   return knn.knnMatch(des1, des2, 2)
   
 
+def panoramica(method, img1, img2):
+    global matches
+    (kp1, des1) = detect_and_compute(img1, method)
+    (kp2, des2) = detect_and_compute(img2, method)
 
-img1 = cv2.imread( FILE1,0) 
-img2 = cv2.imread( FILE2,0) 
+    matches = match(method, False, des1, des2)
 
-
-
-(kp1, des1) = detect_and_compute(img1, ORB_DESCRIPTOR)
-(kp2, des2) = detect_and_compute(img2, ORB_DESCRIPTOR)
-
-#points1 = cv2.drawKeypoints(img1, kp1, None)
-#points2 = cv2.drawKeypoints(img2, kp2, None)
-
-matches = match(ORB_DESCRIPTOR, False, des1, des2)
+    result = fusion(img1, kp1, des1, img2, kp2, des2)
+    return result
 
 
+img1 = cv2.imread( FILE1) 
+img2 = cv2.imread( FILE2) 
 
-#img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:10],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-result = fusion(img1, kp1, des1, img2, kp2, des2)
 
-#cv2.imshow("Img1 Keypoints", points1)
-#cv2.imshow("Img2 Keypoints", points2)
-#cv2.imshow("Matches", img3)
-cv2.imshow("Resultado", result)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+result_orb = panoramica(ORB_DESCRIPTOR, img1, img2)
+result_brisk = panoramica(BRISK_DESCRIPTOR, img1, img2)
+result_sift = panoramica(SIFT_DESCRIPTOR, img1, img2)
+result_kaze = panoramica(KAZE_DESCRIPTOR, img1, img2)
+result_akaze = panoramica(AKAZE_DESCRIPTOR, img1, img2)
+
+
+
+plt.subplot(321),plt.imshow(cv2.cvtColor(result_orb, cv2.COLOR_BGR2RGB)),plt.title('ORB')
+plt.xticks([]), plt.yticks([])
+plt.subplot(322),plt.imshow(cv2.cvtColor(result_brisk, cv2.COLOR_BGR2RGB)),plt.title('BRISK')
+plt.xticks([]), plt.yticks([])
+plt.subplot(323),plt.imshow(cv2.cvtColor(result_sift, cv2.COLOR_BGR2RGB)),plt.title('SIFT')
+plt.xticks([]), plt.yticks([])
+plt.subplot(324),plt.imshow(cv2.cvtColor(result_kaze, cv2.COLOR_BGR2RGB)),plt.title('KAZE')
+plt.xticks([]), plt.yticks([])
+plt.subplot(325),plt.imshow(cv2.cvtColor(result_kaze, cv2.COLOR_BGR2RGB)),plt.title('AKAZE')
+plt.xticks([]), plt.yticks([])
+
+plt.show()
