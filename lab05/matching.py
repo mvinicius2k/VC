@@ -26,7 +26,7 @@ def matching_orb(im1,im2):
 
 def matching_sift(im1,im2):
 	# Initiate SIFT detector
-	sift = cv.xfeatures2d.SIFT_create()
+	sift = cv.SIFT_create()
 	# find the keypoints and descriptors with SIFT
 	kp1, des1 = sift.detectAndCompute(im1,None)
 	kp2, des2 = sift.detectAndCompute(im2,None)
