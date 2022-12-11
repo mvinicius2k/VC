@@ -1,4 +1,0 @@
-Algoritmo executado em 9.8485184s, com resolução de escala reduzida em 1.5
-Algoritmo executado em 10.6640256s, com resolução de escala reduzida em 1.4
-Algoritmo executado em 10.906365500000003s, com resolução de escala reduzida em 1.3
-Algoritmo executado em 22.119017200000002s, com resolução de escala reduzida em 1.1
